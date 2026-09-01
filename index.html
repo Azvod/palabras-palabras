@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Práctica de Fonética y Pronunciación en Español</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --bg: #f4f7f6;
+            --card-shadow: 0 6px 16px rgba(0,0,0,0.1);
+            --g-simple: #2ecc71;
+            --g-special: #e67e22;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        p.subtitle { color: #666; font-size: 1em; }
+
+        /* Filtros */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: #fff;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover, .btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Grid e Interactive Cards */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            height: 280px;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            cursor: pointer;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            padding: 15px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+        }
+
+        .card-front {
+            border-top: 6px solid var(--g-simple);
+        }
+
+        .card-container.special .card-front {
+            border-top-color: var(--g-special);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .tag {
+            font-size: 0.8em;
+            background: #eee;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .hint {
+            font-size: 0.75em;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background-color: #fff;
+            text-align: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .word-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .phonetic-highlight {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .btn-audio {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 50px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.1s ease;
+        }
+
+        .btn-audio:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Práctica de Pronunciación y Fonética</h1>
+        <p class="subtitle">Toca la tarjeta para voltearla y presiona el botón para escuchar la pronunciación exacta.</p>
+    </header>
+
+    <div class="controls">
+        <button class="btn active" onclick="filterCards('all')">Todas (30)</button>
+        <button class="btn" onclick="filterCards('simple')">Sílabas Simples (MA, PA, BA...)</button>
+        <button class="btn" onclick="filterCards('special')">Combinaciones Especiales (GE, GUI, GÜE, QUE...)</button>
+    </div>
+
+    <div class="grid" id="cardsGrid"></div>
+</div>
+
+<script>
+    const wordsData = [
+        // --- SÍLABAS SIMPLES (MA, PA, BA, LA, TA, CA...) ---
+        { word: "Mano", highlight: "<b>Ma</b>no", category: "simple", tag: "MA-", img: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=400&q=80" },
+        { word: "Papa", highlight: "<b>Pa</b>pa", category: "simple", tag: "PA-", img: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&q=80" },
+        { word: "Barco", highlight: "<b>Ba</b>rco", category: "simple", tag: "BA-", img: "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&q=80" },
+        { word: "Casa", highlight: "<b>Ca</b>sa", category: "simple", tag: "CA-", img: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=400&q=80" },
+        { word: "Taza", highlight: "<b>Ta</b>za", category: "simple", tag: "TA-", img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&q=80" },
+        { word: "Lana", highlight: "<b>La</b>na", category: "simple", tag: "LA-", img: "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=400&q=80" },
+        { word: "Mesa", highlight: "<b>Me</b>sa", category: "simple", tag: "ME-", img: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?w=400&q=80" },
+        { word: "Pato", highlight: "<b>Pa</b>to", category: "simple", tag: "PA-", img: "https://images.unsplash.com/photo-1555852095-64e7428df025?w=400&q=80" },
+        { word: "Bota", highlight: "<b>Bo</b>ta", category: "simple", tag: "BO-", img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" },
+        { word: "Cama", highlight: "<b>Ca</b>ma", category: "simple", tag: "CA-", img: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=400&q=80" },
+        { word: "Sopa", highlight: "<b>So</b>pa", category: "simple", tag: "SO-", img: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400&q=80" },
+        { word: "Luna", highlight: "<b>Lu</b>na", category: "simple", tag: "LU-", img: "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=400&q=80" },
+        { word: "Vaso", highlight: "<b>Va</b>so", category: "simple", tag: "VA-", img: "https://images.unsplash.com/photo-1572119865084-43c285814d70?w=400&q=80" },
+        { word: "Gato", highlight: "<b>Ga</b>to", category: "simple", tag: "GA-", img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400&q=80" },
+        { word: "Pelo", highlight: "<b>Pe</b>lo", category: "simple", tag: "PE-", img: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=400&q=80" },
+
+        // --- COMBINACIONES ESPECIALES (GE, GI, GUE, GUI, GÜE, GÜI, CE, CI, QUE, QUI) ---
+        { word: "Gente", highlight: "<span class='phonetic-highlight'>Ge</span>nte", category: "special", tag: "GE (suave/jota)", img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400&q=80" },
+        { word: "Girasol", highlight: "<span class='phonetic-highlight'>Gi</span>rasol", category: "special", tag: "GI (suave/jota)", img: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?w=400&q=80" },
+        { word: "Manguera", highlight: "Man<span class='phonetic-highlight'>gue</span>ra", category: "special", tag: "GUE (U muda)", img: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=400&q=80" },
+        { word: "Guitarra", highlight: "<span class='phonetic-highlight'>Gui</span>tarra", category: "special", tag: "GUI (U muda)", img: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=400&q=80" },
+        { word: "Cigüeña", highlight: "Ci<span class='phonetic-highlight'>güe</span>ña", category: "special", tag: "GÜE (U suena)", img: "https://images.unsplash.com/photo-1539664030488-bed650201210?w=400&q=80" },
+        { word: "Pingüino", highlight: "Pin<span class='phonetic-highlight'>güi</span>no", category: "special", tag: "GÜI (U suena)", img: "https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=400&q=80" },
+        { word: "Cebra", highlight: "<span class='phonetic-highlight'>Ce</span>bra", category: "special", tag: "CE", img: "https://images.unsplash.com/photo-1501705388883-4ed8a543392c?w=400&q=80" },
+        { word: "Cine", highlight: "<span class='phonetic-highlight'>Ci</span>ne", category: "special", tag: "CI", img: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&q=80" },
+        { word: "Queso", highlight: "<span class='phonetic-highlight'>Que</span>so", category: "special", tag: "QUE", img: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&q=80" },
+        { word: "Química", highlight: "<span class='phonetic-highlight'>Qui</span>mica", category: "special", tag: "QUI", img: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=400&q=80" },
+        { word: "Agua", highlight: "A<span class='phonetic-highlight'>gua</span>", category: "special", tag: "GUA", img: "https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=400&q=80" },
+        { word: "Gemelos", highlight: "<span class='phonetic-highlight'>Ge</span>melos", category: "special", tag: "GE", img: "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=400&q=80" },
+        { word: "Águila", highlight: "Á<span class='phonetic-highlight'>gui</span>la", category: "special", tag: "GUI", img: "https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=400&q=80" },
+        { word: "Paragüero", highlight: "Para<span class='phonetic-highlight'>güe</span>ro", category: "special", tag: "GÜE", img: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=400&q=80" },
+        { word: "Cocina", highlight: "Co<span class='phonetic-highlight'>ci</span>na", category: "special", tag: "CI", img: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=400&q=80" }
+    ];
+
+    function renderCards(filter = 'all') {
+        const grid = document.getElementById('cardsGrid');
+        grid.innerHTML = '';
+
+        const filtered = filter === 'all' 
+            ? wordsData 
+            : wordsData.filter(w => w.category === filter);
+
+        filtered.forEach(item => {
+            const cardBox = document.createElement('div');
+            cardBox.className = `card-container ${item.category}`;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Giro de tarjeta al hacer clic
+            card.onclick = (e) => {
+                if(!e.target.closest('.btn-audio')) {
+                    card.classList.toggle('flipped');
+                }
+            };
+
+            const front = document.createElement('div');
+            front.className = 'card-front';
+            front.innerHTML = `
+                <span class="tag">${item.tag}</span>
+                <img src="${item.img}" class="card-img" alt="${item.word}" onerror="this.src='https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=400&q=80'">
+                <div class="hint">Toca para voltear ↺</div>
+            `;
+
+            const back = document.createElement('div');
+            back.className = 'card-back';
+            back.innerHTML = `
+                <div class="word-title">${item.highlight}</div>
+                <button class="btn-audio" onclick="speakWord('${item.word}')">
+                    🔊 Escuchar
+                </button>
+                <div class="hint">Toca para volver ↺</div>
+            `;
+
+            card.appendChild(front);
+            card.appendChild(back);
+            cardBox.appendChild(card);
+            grid.appendChild(cardBox);
+        });
+    }
+
+    // Función de síntesis de voz
+    function speakWord(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // Detener lecturas previas
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES'; // Configurado en español
+            utterance.rate = 0.8; // Velocidad pausada ideal para aprender
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert("Tu navegador no soporta la síntesis de voz.");
+        }
+    }
+
+    function filterCards(category) {
+        document.querySelectorAll('.controls .btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        renderCards(category);
+    }
+
+    renderCards();
+</script>
+
+</body>
+</html>
